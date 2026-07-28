@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: <APP_NAME>
+  namespace: <NAMESPACE>
+
+  labels:
+    app.kubernetes.io/name: <APP_NAME>
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: terraform-k8s
+
+spec:
+  ingressClassName: <INGRESS_CLASS>
+
+  tls:
+    - hosts:
+        - <INGRESS_HOST>
+
+      secretName: <TLS_SECRET_NAME>
+
+  rules:
+    - host: <INGRESS_HOST>
+
+      http:
+        paths:
+          - path: /
+
+            pathType: Prefix
+
+            backend:
+              service:
+                name: <APP_NAME>
+
+                port:
+                  number: 80
