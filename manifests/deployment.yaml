@@ -1,1 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <APP_NAME>
+  namespace: <NAMESPACE>
 
+  labels:
+    app.kubernetes.io/name: <APP_NAME>
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: terraform-k8s
+
+spec:
+  replicas: <APP_REPLICA_COUNT>
+
+  revisionHistoryLimit: 10
+
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: <APP_NAME>
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: <APP_NAME>
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: terraform-k8s
+
+    spec:
+      terminationGracePeriodSeconds: 30
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: <APP_NAME>
+
+      containers:
+        - name: <APP_NAME>
+
+          image: <APP_IMAGE>:<APP_IMAGE_TAG>
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: <APP_PORT>
+              protocol: TCP
+
+          env:
+            - name: DB_HOST
+              value: mysql
+
+            - name: DB_PORT
+              value: "<MYSQL_PORT>"
+
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_DATABASE
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_REPLICATION_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_REPLICATION_PASSWORD
+
+          resources:
+            requests:
+              cpu: <REQUEST_CPU>
+              memory: <REQUEST_MEMORY>
+
+            limits:
+              cpu: <LIMIT_CPU>
+              memory: <LIMIT_MEMORY>
+
+          securityContext:
+            allowPrivilegeEscalation: false
+
+            readOnlyRootFilesystem: false
+
+            runAsNonRoot: true
+
+            capabilities:
+              drop:
+                - ALL
+          
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+
+            periodSeconds: <STARTUP_PROBE_PERIOD>
+
+            failureThreshold: <STARTUP_PROBE_FAILURE_THRESHOLD>
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+
+            initialDelaySeconds: <READINESS_INITIAL_DELAY>
+
+            periodSeconds: <READINESS_PERIOD>
+
+            timeoutSeconds: 5
+
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+
+            initialDelaySeconds: <LIVENESS_INITIAL_DELAY>
+
+            periodSeconds: <LIVENESS_PERIOD>
+
+            timeoutSeconds: 5
+
+            failureThreshold: 3
+
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 10
+
+          terminationMessagePolicy: FallbackToLogsOnError
