@@ -15,6 +15,7 @@ class_query.sh
 SQL查詢語句
 
 情境實戰測驗
+
 題目一:
 再不更改任何架構的前提下，先行確保所有服務皆為高可用性至少為2台以上，其中包含Web Server(Frontend), AP Server(Backend), Cache Server(Redis or Memcache), DB Server
 並確認目前所有Server使用狀態(包含Connection、Session), 評估以往高峰期間的流量以及使用資源來進行評估是否調整Instance type以作為活動開始前置準備，並啟用Auto Scaling服務以避免
