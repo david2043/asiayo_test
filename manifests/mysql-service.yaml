@@ -1,0 +1,83 @@
+###############################################
+# Headless Service
+###############################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-headless
+  namespace: <NAMESPACE>
+
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: terraform-k8s
+
+spec:
+  clusterIP: None
+
+  selector:
+    app.kubernetes.io/name: mysql
+
+  ports:
+    - name: mysql
+      port: <MYSQL_PORT>
+      targetPort: mysql
+
+---
+
+###############################################
+# Primary Service
+###############################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-primary
+  namespace: <NAMESPACE>
+
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: terraform-k8s
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/role: primary
+
+  ports:
+    - name: mysql
+      port: <MYSQL_PORT>
+      targetPort: mysql
+
+---
+
+###############################################
+# Replica Service
+###############################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-replica
+  namespace: <NAMESPACE>
+
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: terraform-k8s
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/role: replica
+
+  ports:
+    - name: mysql
+      port: <MYSQL_PORT>
+      targetPort: mysql
